@@ -1,0 +1,12 @@
+node_modules
+dist
+data
+.env
+.git
+*.zip
+*.log
+
+work
+.env.*
+*.sqlite*
+*.db
