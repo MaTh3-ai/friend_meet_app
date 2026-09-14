@@ -138,6 +138,17 @@ test("Private data, mutual contacts, visibility, blocks, export and deletion acr
     !(await request("/matches", "GET", undefined, alice)).data.matches[0]
       .contacts,
   );
+  // Declining an incoming request clears it without creating consent or a block.
+  await request(`/connections/${a.id}`, "DELETE", undefined, bob);
+  assert.equal(
+    (await request("/matches", "GET", undefined, alice)).data.matches[0].status,
+    "none",
+  );
+  assert.ok(
+    !(await request("/matches", "GET", undefined, alice)).data.matches[0]
+      .contacts,
+  );
+  await request(`/connections/${b.id}`, "POST", {}, alice);
   assert.equal(
     (await request(`/connections/${a.id}`, "POST", {}, bob)).data.status,
     "connected",

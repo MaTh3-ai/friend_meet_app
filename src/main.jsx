@@ -1615,7 +1615,9 @@ function App() {
                               )}
                         <MessageCircle size={18} />
                       </button>
-                      {activePerson.status === "pending" && (
+                      {["pending", "incoming"].includes(
+                        activePerson.status,
+                      ) && (
                         <button
                           className="text-button"
                           disabled={busy}
@@ -1630,7 +1632,9 @@ function App() {
                             })
                           }
                         >
-                          {t("Cancel request", "Annuler la demande")}
+                          {activePerson.status === "incoming"
+                            ? t("Decline request", "Refuser la demande")
+                            : t("Cancel request", "Annuler la demande")}
                         </button>
                       )}
                     </>
