@@ -1,5 +1,5 @@
 // Provisional questions; similarity is experimental, not a validated prediction.
-export const QUESTIONNAIRE_VERSION = "scenario-v4";
+export const QUESTIONNAIRE_VERSION = "scenario-v5";
 // Stable IDs define the dimensions of the private interest vector.
 export const interestDimensions = [
   { id: "pop", en: "Pop music", fr: "Musique pop" },
@@ -17,10 +17,10 @@ export const interestDimensions = [
   },
 ];
 
-// Carry forward compatible answers; the server archives the full v3 record on save.
+// Carry forward compatible answers; the server archives the previous record on save.
 export function currentAnswers(answers) {
   if (answers?.version === QUESTIONNAIRE_VERSION) return answers.values || {};
-  if (answers?.version !== "scenario-v3") return {};
+  if (!["scenario-v3", "scenario-v4"].includes(answers?.version)) return {};
   const previous = answers.values || {};
   const result = Object.fromEntries(
     questions
@@ -32,11 +32,20 @@ export function currentAnswers(answers) {
       interestDimensions.map(({ id }) => [id, result.interests[id] ?? null]),
     );
   }
+  // Earlier participants could not see the two new references. Ask again instead
+  // of treating their absence as a negative response in similarity calculations.
+  delete result.references;
   return result;
 }
 // Order matches the response indexes in both languages; null means no image yet.
 export const referenceImages = [
-  null,
+  {
+    src: "/references/reality.webp",
+    alt: {
+      en: "A man reacts during a reality television show",
+      fr: "Un homme réagit pendant une émission de téléréalité",
+    },
+  },
   {
     src: "/references/urban.jpg",
     alt: {
@@ -65,7 +74,13 @@ export const referenceImages = [
       fr: "Un homme portant un casque dans un magasin de jeux vidéo",
     },
   },
-  null,
+  {
+    src: "/references/anime.webp",
+    alt: {
+      en: "An animated scene with two characters and a potato",
+      fr: "Une scène animée avec deux personnages et une pomme de terre",
+    },
+  },
 ];
 export const questions = [
   {
@@ -182,9 +197,9 @@ export const questions = [
       title: "Tu as la réf ?",
       prompt:
         "Parmi ces captures d’écran, lesquelles reconnais-tu au point de pouvoir compléter la phrase ou raconter ce qui arrive juste après ?",
-      hint: "Choisis les images que tu reconnais. Plusieurs réponses possibles ; deux images arrivent bientôt.",
+      hint: "Choisis les images que tu reconnais. Plusieurs réponses possibles.",
       options: [
-        "Pop",
+        "Téléréalité",
         "Culture urbaine / Rap",
         "Sport",
         "Cinéma",
@@ -196,9 +211,9 @@ export const questions = [
       title: "Do you know the reference?",
       prompt:
         "Which of these screenshots do you know well enough to finish the line or say what happens next?",
-      hint: "Choose the images you recognise. You can pick more than one; two images are coming soon.",
+      hint: "Choose the images you recognise. You can pick more than one.",
       options: [
-        "Pop",
+        "Reality TV",
         "Urban culture / Rap",
         "Sport",
         "Cinema",
