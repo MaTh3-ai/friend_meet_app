@@ -224,7 +224,7 @@ export function createApp(db, config) {
     res.json({ visible });
   });
   app.get("/api/me/export", (req, res) => {
-    res.attachment("common-ground-data.json").json({
+    res.attachment("meeting-ground-data.json").json({
       ...own(req.person),
       createdAt: req.person.created_at,
       updatedAt: req.person.updated_at,
