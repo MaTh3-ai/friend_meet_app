@@ -30,7 +30,7 @@ jobs:
       APP_ORIGIN: https://localhost
       SITE_DOMAIN: localhost
       CI_DEMO_CODE: ci-only-access-code-123
-      SMOKE_STATE_FILE: ${{ runner.temp }}/meeting-ground-session.json
+      SMOKE_STATE_FILE: /tmp/meeting-ground-ci-session.json
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
