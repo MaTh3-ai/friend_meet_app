@@ -8,7 +8,7 @@ import { createApp } from "../server/app.js";
 import { openDb, prune } from "../server/db.js";
 import { readConfig } from "../server/config.js";
 import { parseCas } from "../server/auth.js";
-import { demoEngine, eligible } from "../server/matching.js";
+import { demoEngine, similarityEngine, eligible } from "../server/matching.js";
 import {
   questions,
   QUESTIONNAIRE_VERSION,
@@ -184,6 +184,19 @@ test("Private data, mutual contacts, visibility, blocks, export and deletion acr
     .values;
   assert.deepEqual(ownAnswers.interests, ratings());
   assert.deepEqual(ownAnswers.references, [1, 2]);
+  db.prepare("UPDATE users SET answers=? WHERE id=?").run(
+    JSON.stringify({ version: QUESTIONNAIRE_VERSION, values: {} }),
+    b.id,
+  );
+  const insufficient = (await request("/matches", "GET", undefined, alice))
+    .data;
+  assert.equal(insufficient.matches.length, 1);
+  assert.equal(insufficient.matches[0].score, null);
+  assert.ok(!("interests" in insufficient.matches[0]));
+  db.prepare("UPDATE users SET answers=? WHERE id=?").run(
+    JSON.stringify({ version: QUESTIONNAIRE_VERSION, values: ownAnswers }),
+    b.id,
+  );
   await request(
     "/me/contacts",
     "PUT",
@@ -193,6 +206,9 @@ test("Private data, mutual contacts, visibility, blocks, export and deletion acr
   let result = (await request("/matches", "GET", undefined, alice)).data;
   assert.equal(result.matches.length, 1);
   assert.equal(result.matches[0].name, "Bob");
+  assert.equal(result.simulated, false);
+  assert.equal(result.engineVersion, "similarity-v1");
+  assert.equal(result.matches[0].score, 11);
   for (const secret of [
     "SECRET",
     "PRIVATE-TEXT",
@@ -427,6 +443,91 @@ test("Demo score is stable, symmetric and bounded; preferences apply mutually", 
       { gender: "unspecified", preference: "anyone" },
       { gender: "woman", preference: "man" },
     ),
+  );
+});
+
+test("Experimental similarity uses shared ratings and answers, not identities", () => {
+  const person = (values) => ({
+    answers: { version: QUESTIONNAIRE_VERSION, values },
+  });
+  const a = person({
+    interests: { pop: 8, electronic: 4, rap: 6 },
+    party: 1,
+    humour: 1,
+    activities: [0, 1, 2],
+    references: [1, 2],
+  });
+  const b = person({
+    interests: { pop: 6, electronic: 6, rap: 6 },
+    party: 1,
+    humour: 2,
+    activities: [0, 1],
+    references: [1, 3],
+  });
+  const result = similarityEngine.score(a, b);
+  // Cosine ≈ 0.965, choice average = (1 + 0 + 2/3 + 1/3)/4 = 0.5.
+  assert.deepEqual(result, { score: 73, limited: false });
+  assert.deepEqual(similarityEngine.score(b, a), result);
+  assert.deepEqual(
+    similarityEngine.score({ ...a, id: "one" }, { ...b, id: "two" }),
+    result,
+  );
+  assert.deepEqual(similarityEngine.score(person({}), person({})), {
+    score: null,
+    limited: false,
+  });
+  assert.deepEqual(
+    similarityEngine.score(
+      person({ party: 0, humour: 0 }),
+      person({ party: 1, humour: 1 }),
+    ),
+    { score: 0, limited: true },
+  );
+  assert.deepEqual(
+    similarityEngine.score(
+      person({ activities: [], humour: 0 }),
+      person({ activities: [1], humour: 1 }),
+    ),
+    { score: 0, limited: true },
+  );
+  assert.deepEqual(
+    similarityEngine.score(person({ party: 1 }), person({ party: 1 })),
+    { score: null, limited: false },
+  );
+  assert.deepEqual(
+    similarityEngine.score(
+      person({ party: 1, humour: 2 }),
+      person({ party: 1, humour: 2 }),
+    ),
+    { score: 100, limited: true },
+  );
+  assert.deepEqual(
+    similarityEngine.score(
+      person({ activities: [], references: [] }),
+      person({ activities: [], references: [] }),
+    ),
+    { score: null, limited: false },
+  );
+  assert.deepEqual(
+    similarityEngine.score(
+      person({ interests: { pop: 1, rap: 2 } }),
+      person({ interests: { pop: 1, rap: 2 } }),
+    ),
+    { score: null, limited: false },
+  );
+  assert.deepEqual(
+    similarityEngine.score(
+      person({ interests: { pop: 1, rap: 2, sport: 3 } }),
+      person({ interests: { pop: 1, rap: 2, sport: 3 } }),
+    ),
+    { score: 100, limited: true },
+  );
+  assert.deepEqual(
+    similarityEngine.score(
+      { answers: { version: "explore-v1", values: { party: 1 } } },
+      person({ party: 1, humour: 2 }),
+    ),
+    { score: null, limited: false },
   );
 });
 test("Hosted configuration refuses insecure demo and incomplete CAS setup", () => {
