@@ -1,4 +1,9 @@
 import { createHash } from "node:crypto";
+import {
+  currentAnswers,
+  interestDimensions,
+  referenceImages,
+} from "../shared/questions.js";
 // Only this adapter invents numbers. Replace it with a validated engine later.
 // Both components and their equal weighting are arbitrary DEMO mechanics.
 function mockComponent(a, b, channel) {
@@ -18,6 +23,85 @@ export const demoEngine = {
     const questionnaire = mockComponent(a, b, "questionnaire");
     const semantics = mockComponent(a, b, "texts");
     return Math.round((questionnaire + semantics) / 2);
+  },
+};
+// Exploratory similarity, not a validated predictor. Never return components.
+export const similarityEngine = {
+  version: "similarity-v1",
+  simulated: false,
+  score(a, b) {
+    const x = currentAnswers(a.answers),
+      y = currentAnswers(b.answers);
+    const left = [],
+      right = [];
+    for (const { id } of interestDimensions) {
+      const l = x.interests?.[id],
+        r = y.interests?.[id];
+      if (
+        Number.isInteger(l) &&
+        l >= 1 &&
+        l <= 10 &&
+        Number.isInteger(r) &&
+        r >= 1 &&
+        r <= 10
+      ) {
+        left.push(l);
+        right.push(r);
+      }
+    }
+    let sliderScore = null;
+    if (left.length >= 3) {
+      const dot = left.reduce((sum, n, i) => sum + n * right[i], 0);
+      const normA = Math.sqrt(left.reduce((sum, n) => sum + n * n, 0));
+      const normB = Math.sqrt(right.reduce((sum, n) => sum + n * n, 0));
+      sliderScore = dot / (normA * normB);
+    }
+    const choices = [];
+    for (const id of ["party", "humour"]) {
+      if (
+        Number.isInteger(x[id]) &&
+        x[id] >= 0 &&
+        x[id] <= 2 &&
+        Number.isInteger(y[id]) &&
+        y[id] >= 0 &&
+        y[id] <= 2
+      ) {
+        choices.push(x[id] === y[id] ? 1 : 0);
+      }
+    }
+    for (const id of ["activities", "references"]) {
+      if (!Array.isArray(x[id]) || !Array.isArray(y[id])) continue;
+      const allowed =
+        id === "activities"
+          ? [0, 1, 2, 3, 4, 5]
+          : referenceImages
+              .map((image, i) => (image ? i : null))
+              .filter((i) => i !== null);
+      const first = new Set(x[id].filter((i) => allowed.includes(i)));
+      const second = new Set(y[id].filter((i) => allowed.includes(i)));
+      const union = new Set([...first, ...second]);
+      if (union.size)
+        choices.push(
+          [...first].filter((i) => second.has(i)).length / union.size,
+        );
+    }
+    const choiceScore = choices.length
+      ? choices.reduce((sum, n) => sum + n, 0) / choices.length
+      : null;
+    if (sliderScore === null && choiceScore === null)
+      return { score: null, limited: false };
+    // With no slider component, one single comparison would reveal whether one
+    // private answer matched exactly. Require two choices before publishing.
+    if (sliderScore === null && choices.length < 2)
+      return { score: null, limited: false };
+    const combined =
+      sliderScore !== null && choiceScore !== null
+        ? (sliderScore + choiceScore) / 2
+        : (sliderScore ?? choiceScore);
+    return {
+      score: Math.max(0, Math.min(100, Math.round(combined * 100))),
+      limited: sliderScore === null || choiceScore === null,
+    };
   },
 };
 // Future engine contract: {version, simulated, score(privatePersonA, privatePersonB)}.

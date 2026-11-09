@@ -5,7 +5,7 @@
 - Keep the interface English by default with French parity through the existing `t(en, fr)` convention. Keep question translations in `shared/questions.js`.
 - Preserve the public profile whitelist. Never return private answers, texts, gender, preferences, session tokens or CAS identity keys in someone else's results.
 - Never log request bodies or authentication callback query strings. Never store a university password.
-- The current score is simulated. Keep that disclosure and isolate all mock math in `server/matching.js`. Do not introduce scientific weights without evidence.
+- The score for real participants is experimental and unvalidated; it is not a prediction. Fictional profile scores are simulated and must remain labelled. Keep all scoring in `server/matching.js`; do not introduce scientific claims or weights without evidence. Assess inference risk before wider use.
 - Demo mode must never imply verified UPPA enrolment. CAS must fail closed without confirmed student attributes.
 - Do not merge fictional profiles into the real participant list or permit contacting them.
 - Preserve consent-based contact exchange, hiding, blocking, export, deletion and relational cascades.

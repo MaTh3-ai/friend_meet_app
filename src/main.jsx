@@ -78,7 +78,7 @@ function App() {
   const [code, setCode] = useState(""),
     [matches, setMatches] = useState([]),
     [example, setExample] = useState(false),
-    [threshold, setThreshold] = useState(30);
+    [threshold, setThreshold] = useState(0);
   const [matchLoading, setMatchLoading] = useState(false),
     [contacts, setContacts] = useState({ instagram: "", discord: "" }),
     [blocks, setBlocks] = useState([]);
@@ -230,11 +230,11 @@ function App() {
           {
             name: "set_match_threshold",
             description:
-              "Change the minimum displayed demo score on the results screen.",
+              "Change the minimum displayed score on the results screen.",
             inputSchema: {
               type: "object",
               properties: {
-                minimum: { type: "integer", minimum: 30, maximum: 100 },
+                minimum: { type: "integer", minimum: 0, maximum: 100 },
               },
               required: ["minimum"],
               additionalProperties: false,
@@ -243,11 +243,11 @@ function App() {
               if (
                 screen !== "results" ||
                 !Number.isInteger(input.minimum) ||
-                input.minimum < 30 ||
+                input.minimum < 0 ||
                 input.minimum > 100
               )
                 throw new Error(
-                  "Open results and supply a minimum from 30 to 100.",
+                  "Open results and supply a minimum from 0 to 100.",
                 );
               setThreshold(input.minimum);
               await new Promise((resolve) => requestAnimationFrame(resolve));
@@ -782,8 +782,8 @@ function App() {
             <p className="quiet-note">
               <LockKeyhole size={14} />
               {t(
-                "Only your overall demo score is shared. Never your answers.",
-                "Seul ton score global de démo est partagé. Jamais tes réponses.",
+                "Your answers stay private; a score may reveal some similarities.",
+                "Tes réponses restent privées ; le score peut révéler certaines ressemblances.",
               )}
             </p>
           </div>
@@ -866,8 +866,8 @@ function App() {
                 </button>
                 <p className="fine-print">
                   {t(
-                    "Prototype: scores are simulated, not scientific predictions.",
-                    "Prototype : les scores sont simulés, sans prédiction scientifique.",
+                    "Prototype: the similarity score is experimental, not a prediction of friendship.",
+                    "Prototype : le score de similarité est expérimental et ne prédit pas l’amitié.",
                   )}
                 </p>
               </form>
@@ -898,11 +898,21 @@ function App() {
             <div className="simulation-note">
               <Sparkles size={19} />
               <p>
-                <b>{t("Demo scores", "Scores de démo")}</b> —{" "}
-                {t(
-                  "simulated for this prototype, not a prediction of friendship or attraction.",
-                  "simulés pour ce prototype, sans prédiction d’amitié ou d’attirance.",
-                )}
+                <b>
+                  {example
+                    ? t("Example scores", "Scores fictifs")
+                    : t("Experimental similarity", "Similarité expérimentale")}
+                </b>{" "}
+                —{" "}
+                {example
+                  ? t(
+                      "simulated for fictional profiles.",
+                      "simulés pour les profils fictifs.",
+                    )
+                  : t(
+                      "based on answers, not a prediction of friendship or attraction.",
+                      "fondée sur les réponses, sans prédiction d’amitié ou d’attirance.",
+                    )}
               </p>
               <button
                 className="text-button"
@@ -953,9 +963,12 @@ function App() {
                 <SlidersHorizontal size={17} />
                 <span>{t("Minimum score", "Score minimum")}</span>
                 <input
-                  aria-label={t("Minimum demo score", "Score de démo minimum")}
+                  aria-label={t(
+                    "Minimum similarity score",
+                    "Score de similarité minimum",
+                  )}
                   type="range"
-                  min={30}
+                  min={0}
                   max={100}
                   value={threshold}
                   onChange={(e) => setThreshold(Number(e.target.value))}
@@ -965,7 +978,11 @@ function App() {
             </div>
             <div className="result-count">
               <span>
-                {matches.filter((m) => m.score >= threshold).length}{" "}
+                {
+                  matches.filter(
+                    (m) => m.score === null || m.score >= threshold,
+                  ).length
+                }{" "}
                 {t("people to discover", "profils à découvrir")}
                 {example
                   ? ` · ${t("fictional profiles", "profils fictifs")}`
@@ -984,10 +1001,11 @@ function App() {
               <div className="empty-state" role="status">
                 {t("Looking around campus…", "Un petit tour du campus…")}
               </div>
-            ) : matches.filter((m) => m.score >= threshold).length ? (
+            ) : matches.filter((m) => m.score === null || m.score >= threshold)
+                .length ? (
               <div className="people-grid">
                 {matches
-                  .filter((m) => m.score >= threshold)
+                  .filter((m) => m.score === null || m.score >= threshold)
                   .map((p, i) => (
                     <button
                       className="person-card"
@@ -999,9 +1017,26 @@ function App() {
                           <Avatar index={p.avatar} />
                         </span>
                         <span className="score-badge">
-                          {p.score}
-                          <small>%</small>
-                          <span>{t("demo score", "score démo")}</span>
+                          {p.score === null ? (
+                            "—"
+                          ) : (
+                            <>
+                              {p.score}
+                              <small>%</small>
+                            </>
+                          )}
+                          <span>
+                            {p.score === null
+                              ? t(
+                                  "not enough answers",
+                                  "réponses insuffisantes",
+                                )
+                              : example
+                                ? t("demo score", "score démo")
+                                : p.limited
+                                  ? t("limited data", "données limitées")
+                                  : t("similarity", "similarité")}
+                          </span>
                         </span>
                         {p.fictitious && (
                           <span className="fiction-label">
@@ -1085,10 +1120,7 @@ function App() {
                       )}
                 </p>
                 {matches.length ? (
-                  <button
-                    className="secondary"
-                    onClick={() => setThreshold(30)}
-                  >
+                  <button className="secondary" onClick={() => setThreshold(0)}>
                     {t("Show all scores", "Afficher tous les scores")}
                   </button>
                 ) : !example ? (
@@ -1416,20 +1448,20 @@ function App() {
               </span>
               <h2 id="dialog-title">
                 {t(
-                  "A demo, not a prediction.",
-                  "Une démo, pas une prédiction.",
+                  "An experiment, not a prediction.",
+                  "Une expérience, pas une prédiction.",
                 )}
               </h2>
               <p>
                 {t(
-                  "These stable example scores are generated for pairs of profiles. They do not measure compatibility and are not calculated from your answers or texts.",
-                  "Ces scores d’exemple stables sont générés pour des paires de profils. Ils ne mesurent pas la compatibilité et ne sont pas calculés à partir de tes réponses ou textes.",
+                  "For participants, the score compares shared interest ratings and questionnaire choices. It is experimental, not a scientific prediction of friendship or attraction. Fictional profiles have simulated scores.",
+                  "Pour les participants, le score compare les centres d’intérêt et les réponses communes. Il est expérimental et ne prédit scientifiquement ni l’amitié ni l’attirance. Les profils fictifs ont des scores simulés.",
                 )}
               </p>
               <p>
                 {t(
-                  "The questionnaire, text comparison and final scoring will be researched and validated in a later phase. For now, use this as a way to start a conversation.",
-                  "Le questionnaire, la comparaison des textes et le calcul final seront étudiés et validés dans une prochaine phase. Pour le moment, c’est une façon d’engager la conversation.",
+                  "Some scores use limited data. Your answers are not shown, but a score may reveal similarities. The method and its weights have not been validated.",
+                  "Certains scores reposent sur peu de données. Tes réponses ne sont pas affichées, mais le score peut révéler des ressemblances. La méthode et ses pondérations ne sont pas validées.",
                 )}
               </p>
             </>
@@ -1467,7 +1499,24 @@ function App() {
                   )}
               </p>
               <span className="inline-score">
-                {activePerson.score}% · {t("simulated score", "score simulé")}
+                {activePerson.score === null ? (
+                  t(
+                    "Not enough answers for a score",
+                    "Réponses insuffisantes pour un score",
+                  )
+                ) : (
+                  <>
+                    {activePerson.score}% ·{" "}
+                    {activePerson.fictitious
+                      ? t("simulated score", "score simulé")
+                      : activePerson.limited
+                        ? t("limited data", "données limitées")
+                        : t(
+                            "experimental similarity",
+                            "similarité expérimentale",
+                          )}
+                  </>
+                )}
               </span>
               {activePerson.fictitious ? (
                 <p className="auth-note">
