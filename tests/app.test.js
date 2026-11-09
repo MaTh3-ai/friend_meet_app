@@ -13,6 +13,7 @@ import {
   questions,
   QUESTIONNAIRE_VERSION,
   interestDimensions,
+  currentAnswers,
 } from "../shared/questions.js";
 
 const ratings = () =>
@@ -343,6 +344,42 @@ test("Scenario answers accept the correct types and reject invalid choices", () 
       false,
     );
   }
+});
+
+test("Version 3 answers preserve retained ratings and other card responses", () => {
+  const previous = {
+    version: "scenario-v3",
+    values: {
+      party: 2,
+      interests: {
+        ...ratings(),
+        pop: 8,
+        rock: 6,
+        jazz: 4,
+        classical: 7,
+        series: 3,
+      },
+      activities: [0, 3],
+      humour: null,
+      references: [1, 2],
+    },
+  };
+  const converted = currentAnswers(previous);
+  assert.equal(converted.interests.pop, 8);
+  assert.equal(converted.interests.fashion, null);
+  assert.ok(!("rock" in converted.interests));
+  assert.ok(!("series" in converted.interests));
+  assert.deepEqual(converted.references, [1, 2]);
+  assert.equal(
+    completionSchema.safeParse({
+      version: QUESTIONNAIRE_VERSION,
+      answers: converted,
+      texts: { likes: "", dislikes: "" },
+      consent: true,
+    }).success,
+    true,
+  );
+  assert.equal(previous.values.interests.rock, 6);
 });
 test("CAS fails closed for failure, missing affiliation, wrong affiliation, malformed XML and DTD", () => {
   const c = {
