@@ -132,9 +132,12 @@ test("Private data, mutual contacts, visibility, blocks, export and deletion acr
   // Starting the new questionnaire keeps legacy answers in the owner's export.
   db.prepare("UPDATE users SET answers=? WHERE id=?").run(
     JSON.stringify({
-      version: "scenario-v2",
-      values: { interests: "PRIVATE-OLD-TEXT" },
-      history: [{ version: "explore-v1", values: { evening: 1 } }],
+      version: "scenario-v4",
+      values: { party: 1, interests: ratings(), references: [1, 2] },
+      history: [
+        { version: "explore-v1", values: { evening: 1 } },
+        { version: "scenario-v2", values: { interests: "PRIVATE-OLD-TEXT" } },
+      ],
     }),
     a.id,
   );
@@ -153,6 +156,10 @@ test("Private data, mutual contacts, visibility, blocks, export and deletion acr
   assert.deepEqual(exported.answers.history, [
     { version: "explore-v1", values: { evening: 1 } },
     { version: "scenario-v2", values: { interests: "PRIVATE-OLD-TEXT" } },
+    {
+      version: "scenario-v4",
+      values: { party: 1, interests: ratings(), references: [1, 2] },
+    },
   ]);
   assert.equal(
     (
@@ -348,8 +355,8 @@ test("Scenario answers accept the correct types and reject invalid choices", () 
     ["interests", { ...ratings(), pop: 11 }],
     ["interests", { ...ratings(), pop: 3.5 }],
     ["interests", { ...ratings(), unexpected: 4 }],
-    ["references", [0]],
-    ["references", [5]],
+    ["references", [6]],
+    ["references", [0, 0]],
     ["humour", [0]],
   ]) {
     assert.equal(
@@ -385,17 +392,30 @@ test("Version 3 answers preserve retained ratings and other card responses", () 
   assert.equal(converted.interests.fashion, null);
   assert.ok(!("rock" in converted.interests));
   assert.ok(!("series" in converted.interests));
-  assert.deepEqual(converted.references, [1, 2]);
+  assert.ok(!("references" in converted));
   assert.equal(
     completionSchema.safeParse({
       version: QUESTIONNAIRE_VERSION,
-      answers: converted,
+      answers: { ...converted, references: [0, 5] },
       texts: { likes: "", dislikes: "" },
       consent: true,
     }).success,
     true,
   );
   assert.equal(previous.values.interests.rock, 6);
+  const v4 = currentAnswers({
+    version: "scenario-v4",
+    values: { ...previous.values, references: [1, 2] },
+  });
+  assert.equal(v4.interests.pop, 8);
+  assert.ok(!("references" in v4));
+  assert.deepEqual(
+    currentAnswers({
+      version: QUESTIONNAIRE_VERSION,
+      values: { ...v4, references: [0, 5] },
+    }).references,
+    [0, 5],
+  );
 });
 test("CAS fails closed for failure, missing affiliation, wrong affiliation, malformed XML and DTD", () => {
   const c = {
@@ -498,6 +518,18 @@ test("Experimental similarity uses shared ratings and answers, not identities", 
     similarityEngine.score(
       person({ party: 1, humour: 2 }),
       person({ party: 1, humour: 2 }),
+    ),
+    { score: 100, limited: true },
+  );
+  assert.deepEqual(
+    similarityEngine.score(
+      {
+        answers: {
+          version: "scenario-v4",
+          values: { party: 1, humour: 2, references: [1] },
+        },
+      },
+      person({ party: 1, humour: 2, references: [0, 5] }),
     ),
     { score: 100, limited: true },
   );

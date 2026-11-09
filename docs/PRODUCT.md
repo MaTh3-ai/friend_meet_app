@@ -7,7 +7,7 @@
 - English is always the first-run language. A clearly labelled EN/FR switch preserves progress; only the language preference is stored in localStorage. User-written text is not automatically translated.
 - First name/nickname and avatar are the only initial requirements. Study level, bio and age are optional public fields. Pronouns are not collected or displayed. The prototype's age field accepts adults (18+) and does not collect birth dates. This fits the stated M2 cohort; reconsider onboarding before admitting minors.
 - Optional private identity is used only for discovery filtering. Discovery includes Anyone, Women, Men and Non-binary people. Both sides' filters apply.
-- Five provisional story cards: two single-choice questions, private 1–10 interest ratings, an activity multiple choice, and four selectable reference images with two placeholders. Back and skip remain available. This is a UX hypothesis, not a validated scale.
+- Five provisional story cards: two single-choice questions, private 1–10 interest ratings, an activity multiple choice, and six selectable reference images. Back and skip remain available. This is a UX hypothesis, not a validated scale.
 - Previous optional private texts remain stored for existing users, but are no longer requested during onboarding. No external AI processing.
 - Do not call the percentage a scientific compatibility estimate. Real scores are experimental and answer-dependent; fictional scores are disclosed as simulated.
 - Results use real participants by default and refresh every 12 seconds. Fictional examples are separate. The minimum-score filter starts at 0, and people with no score remain visible.
