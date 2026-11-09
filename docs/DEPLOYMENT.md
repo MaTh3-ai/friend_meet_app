@@ -1,5 +1,19 @@
 # Deployment and operations
 
+## Déploiement avec Coolify
+
+Coolify fournit déjà son propre proxy HTTPS. Pour une application Git de type Docker Compose, choisissez le chemin `compose.coolify.yaml` dans les paramètres de l'application, puis rechargez la configuration Compose. Ce fichier démarre seulement l'application ; ne lancez pas aussi le proxy Caddy de `compose.yaml` sur les mêmes ports. Dans Coolify, associez votre domaine HTTPS au service `app` et au port interne **3000**. Le DNS doit pointer vers le serveur et le proxy Coolify doit être accessible sur les ports 80 et 443.
+
+Dans **Environment Variables**, renseignez les variables d'exécution suivantes, puis enregistrez et redéployez :
+
+- `APP_ORIGIN` : URL HTTPS exacte, par exemple `https://rencontre.example.fr`, sans `/` final ; elle doit correspondre au domaine configuré pour `app`.
+- `DEMO_ACCESS_CODE` : code privé aléatoire d'au moins 12 caractères. Conservez-le entre les déploiements et communiquez-le uniquement aux participants invités.
+- `PRIVACY_CONTACT` : adresse de contact pour les données personnelles ; `RETENTION_DAYS` est facultatif et vaut 30 par défaut.
+
+Ces valeurs sont nécessaires au démarrage ; le code ne doit jamais être ajouté au dépôt ni partagé dans des journaux. Le mode démo ne vérifie pas l'inscription universitaire. Le fichier Coolify utilise le même service `app`, le même nom logique `app_data` et le même chemin `/app/data` que la pile classique. Avant de changer la configuration d'une installation contenant déjà des données, vérifiez dans les stockages persistants et la configuration Compose générée que Coolify réutilise **le même volume physique** ; sinon sauvegardez et migrez les données avant de redéployer. N'effacez aucun volume.
+
+Si le conteneur est `unhealthy`, consultez les **logs du service app** dans Coolify : les logs de déploiement seuls ne montrent pas forcément l'erreur Node. Vérifiez notamment les variables, le HTTPS et les permissions d'écriture du volume. Pour un diagnostic sur le serveur, `docker logs NOM_DU_CONTENEUR_APP --tail 100` affiche l'erreur de démarrage ; ne publiez pas les secrets. Si le proxy ne démarre pas, vérifiez le domaine, les ports et la configuration réseau de Coolify. Cette configuration suppose un seul proxy de confiance devant l'application.
+
 ## Déploiement : un serveur, Docker Compose et HTTPS
 
 This works on a conventional Linux VPS/VM, including an AWS EC2 machine. It requires a domain pointing to the server and inbound TCP ports 80 and 443. It is not a static-only upload: the app needs its Node server and persistent SQLite volume.
