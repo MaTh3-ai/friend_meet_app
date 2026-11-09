@@ -1,18 +1,14 @@
 // Provisional questions; scores are simulated and do not use answers.
-export const QUESTIONNAIRE_VERSION = "scenario-v3";
+export const QUESTIONNAIRE_VERSION = "scenario-v4";
 // Stable IDs define the dimensions of the private interest vector.
 export const interestDimensions = [
   { id: "pop", en: "Pop music", fr: "Musique pop" },
-  { id: "rap", en: "Rap and hip-hop", fr: "Rap et hip-hop" },
-  { id: "rock", en: "Rock", fr: "Rock" },
   { id: "electronic", en: "Electronic music", fr: "Musique électronique" },
-  { id: "jazz", en: "Jazz", fr: "Jazz" },
-  { id: "classical", en: "Classical music", fr: "Musique classique" },
-  { id: "fashion", en: "Fashion and style", fr: "Mode et style" },
+  { id: "rap", en: "Rap and hip-hop", fr: "Rap et hip-hop" },
+  { id: "fashion", en: "Fashion", fr: "Mode" },
   { id: "sport", en: "Sport", fr: "Sport" },
   { id: "gaming", en: "Video games", fr: "Jeux vidéo" },
   { id: "cinema", en: "Cinema", fr: "Cinéma" },
-  { id: "series", en: "TV series", fr: "Séries" },
   { id: "anime", en: "Anime and manga", fr: "Anime et manga" },
   {
     id: "nature",
@@ -20,6 +16,24 @@ export const interestDimensions = [
     fr: "Nature et activités en plein air",
   },
 ];
+
+// Carry forward compatible answers; the server archives the full v3 record on save.
+export function currentAnswers(answers) {
+  if (answers?.version === QUESTIONNAIRE_VERSION) return answers.values || {};
+  if (answers?.version !== "scenario-v3") return {};
+  const previous = answers.values || {};
+  const result = Object.fromEntries(
+    questions
+      .filter(({ id }) => id in previous)
+      .map(({ id }) => [id, previous[id]]),
+  );
+  if (result.interests && typeof result.interests === "object") {
+    result.interests = Object.fromEntries(
+      interestDimensions.map(({ id }) => [id, result.interests[id] ?? null]),
+    );
+  }
+  return result;
+}
 // Order matches the response indexes in both languages; null means no image yet.
 export const referenceImages = [
   null,

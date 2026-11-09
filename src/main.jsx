@@ -32,6 +32,7 @@ import { api } from "./api.js";
 import {
   questions,
   avatars,
+  currentAnswers,
   QUESTIONNAIRE_VERSION,
 } from "../shared/questions.js";
 import "./styles.css";
@@ -136,11 +137,7 @@ function App() {
   function hydrate(person) {
     setMe(person);
     setProfile({ ...emptyProfile, ...person.profile });
-    setAnswers(
-      person.answers.version === QUESTIONNAIRE_VERSION
-        ? person.answers.values || {}
-        : {},
-    );
+    setAnswers(currentAnswers(person.answers));
     setTexts({ likes: "", dislikes: "", ...person.texts });
     setContacts({ instagram: "", discord: "", ...person.contacts });
   }
@@ -287,13 +284,7 @@ function App() {
         setScreen("details");
       } else {
         const next = questions.findIndex(
-          (q) =>
-            !(
-              q.id in
-              (person.answers.version === QUESTIONNAIRE_VERSION
-                ? person.answers.values || {}
-                : {})
-            ),
+          (q) => !(q.id in currentAnswers(person.answers)),
         );
         setQIndex(next === -1 ? 0 : next);
         setScreen(next === -1 ? "texts" : "quiz");
