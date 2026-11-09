@@ -1,5 +1,6 @@
-import React, { useRef, useState } from "react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import React, { useState } from "react";
+import { ScenarioArt } from "./ScenarioArt.jsx";
+import { interestDimensions, referenceImages } from "../shared/questions.js";
 
 export function SwipeCard({
   question,
@@ -8,115 +9,202 @@ export function SwipeCard({
   busy,
   onAnswer,
   heading,
-  icon,
   t,
 }) {
-  const gesture = useRef(null);
-  const locked = useRef(false);
-  const [offset, setOffset] = useState(0);
-  async function choose(value) {
-    if (busy || locked.current) return;
-    locked.current = true;
-    setOffset(0);
-    try {
-      await onAnswer(value);
-    } finally {
-      locked.current = false;
-    }
-  }
-  function release(event) {
-    const start = gesture.current;
-    gesture.current = null;
-    setOffset(0);
-    if (!start || event.type !== "pointerup") return;
-    const dx = event.clientX - start.x;
-    const dy = event.clientY - start.y;
-    if (Math.abs(dx) >= 75 && Math.abs(dx) > Math.abs(dy) * 1.3)
-      choose(dx > 0 ? 1 : 0);
-  }
+  const [value, setValue] = useState(
+    selected ??
+      (question.type === "ratings"
+        ? Object.fromEntries(interestDimensions.map(({ id }) => [id, null]))
+        : question.type === "multiple"
+          ? []
+          : question.type === "text"
+            ? ""
+            : null),
+  );
+  const content = question[lang];
+  const toggle = (i) =>
+    setValue((current) =>
+      current.includes(i) ? current.filter((x) => x !== i) : [...current, i],
+    );
   return (
     <div className="swipe-deck">
-      <section
-        className={`question-card swipe-card ${offset < -35 ? "lean-left" : offset > 35 ? "lean-right" : ""}`}
-        style={{
-          transform: `translateX(${offset * 0.45}px) rotate(${offset / 28}deg)`,
-        }}
-        tabIndex={0}
-        aria-label={t(
-          "Answer card. Use left or right arrow keys.",
-          "Carte de réponse. Utilise les flèches gauche ou droite.",
-        )}
-        aria-describedby="swipe-help"
-        aria-busy={busy}
-        onKeyDown={(e) => {
-          if (e.target.tagName === "BUTTON" || e.repeat) return;
-          if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-            e.preventDefault();
-            choose(e.key === "ArrowRight" ? 1 : 0);
-          }
-        }}
-        onPointerDown={(e) => {
-          if (
-            busy ||
-            e.target.closest("button") ||
-            !e.isPrimary ||
-            e.button !== 0
-          )
-            return;
-          gesture.current = { x: e.clientX, y: e.clientY };
-          e.currentTarget.setPointerCapture(e.pointerId);
-        }}
-        onPointerMove={(e) => {
-          if (gesture.current)
-            setOffset(
-              Math.max(-180, Math.min(180, e.clientX - gesture.current.x)),
-            );
-        }}
-        onPointerUp={release}
-        onPointerCancel={release}
-        onLostPointerCapture={() => {
-          gesture.current = null;
-          setOffset(0);
-        }}
-      >
+      <section className="question-card scenario-card" aria-busy={busy}>
         <span className="eyebrow">
-          {t("WHICH FEELS MORE LIKE YOU?", "QU’EST-CE QUI TE RESSEMBLE ?")}
+          {t("A STORY IN FIVE CARDS", "UNE HISTOIRE EN CINQ CARTES")}
         </span>
-        <span className="question-icon">{icon}</span>
-        <h1 ref={heading} tabIndex={-1}>
-          {question[lang][0]}
+        <ScenarioArt scene={question.id} />
+        {content.context && (
+          <p className="scenario-context">{content.context}</p>
+        )}
+        <h1 ref={heading} tabIndex={-1} className="scenario-prompt">
+          {content.prompt}
         </h1>
-        <div className="choices">
-          {question[lang].slice(1).map((label, i) => (
-            <button
-              key={i}
-              className={`choice ${selected === i ? "chosen" : ""}`}
-              aria-pressed={selected === i}
-              disabled={busy}
-              onClick={() => choose(i)}
-            >
-              {i ? <ArrowRight size={24} /> : <ArrowLeft size={24} />}
-              <span>{label}</span>
-              <small>
-                {i
-                  ? t("Slide right", "Glisse à droite")
-                  : t("Slide left", "Glisse à gauche")}
-              </small>
-            </button>
-          ))}
-        </div>
-        <p id="swipe-help" className="swipe-help">
-          {busy
-            ? t("Saving…", "Enregistrement…")
-            : t(
-                "Slide the card, use ← →, or tap a choice.",
-                "Glisse la carte, utilise ← → ou touche un choix.",
-              )}
-        </p>
+        {content.hint && <p className="scenario-hint">{content.hint}</p>}
+        {question.id === "references" ? (
+          <div
+            className="reference-grid"
+            role="group"
+            aria-label={content.prompt}
+          >
+            {content.options.map((label, i) =>
+              referenceImages[i] ? (
+                <button
+                  key={label}
+                  type="button"
+                  className={`reference-card ${value.includes(i) ? "chosen" : ""}`}
+                  aria-pressed={value.includes(i)}
+                  disabled={busy}
+                  onClick={() => toggle(i)}
+                >
+                  <img
+                    src={referenceImages[i].src}
+                    alt={referenceImages[i].alt[lang]}
+                  />
+                  <span>
+                    <b>{label}</b>
+                    <span aria-hidden="true">
+                      {value.includes(i) ? "✓" : "+"}
+                    </span>
+                  </span>
+                </button>
+              ) : (
+                <div className="reference-card unavailable" key={label}>
+                  <div className="reference-empty" aria-hidden="true">
+                    ✦
+                  </div>
+                  <span>
+                    <b>{label}</b>
+                    <small>{t("Coming soon", "À venir")}</small>
+                  </span>
+                </div>
+              ),
+            )}
+          </div>
+        ) : question.type === "ratings" ? (
+          <div className="interest-ratings">
+            <p className="ratings-ends">
+              {t("1 · Not interested", "1 · Pas intéressé·e")}{" "}
+              <span>{t("10 · Love it", "10 · J’adore")}</span>
+            </p>
+            {interestDimensions.map(({ id, en, fr }) => {
+              const rating = value[id];
+              return (
+                <div
+                  className={`rating-row ${rating === null ? "unanswered" : ""}`}
+                  key={id}
+                >
+                  <div className="rating-header">
+                    <label htmlFor={`interest-${id}`}>
+                      {lang === "fr" ? fr : en}
+                    </label>
+                    <span className="rating-value">
+                      {rating === null
+                        ? t("Not answered", "Non renseigné")
+                        : `${rating}/10`}
+                    </span>
+                  </div>
+                  <input
+                    id={`interest-${id}`}
+                    type="range"
+                    min="1"
+                    max="10"
+                    step="1"
+                    value={rating ?? 5}
+                    aria-valuetext={
+                      rating === null
+                        ? t("Not answered", "Non renseigné")
+                        : `${rating} / 10`
+                    }
+                    disabled={busy}
+                    onPointerDown={() => {
+                      if (rating === null)
+                        setValue((current) => ({ ...current, [id]: 5 }));
+                    }}
+                    onChange={(e) =>
+                      setValue((current) => ({
+                        ...current,
+                        [id]: Number(e.target.value),
+                      }))
+                    }
+                  />
+                  <div className="rating-ticks" aria-hidden="true">
+                    {Array.from({ length: 10 }, (_, i) => (
+                      <span key={i}>{i + 1}</span>
+                    ))}
+                  </div>
+                  {rating !== null && (
+                    <button
+                      type="button"
+                      className="rating-clear"
+                      disabled={busy}
+                      onClick={() =>
+                        setValue((current) => ({ ...current, [id]: null }))
+                      }
+                      aria-label={t(`Clear ${en}`, `Effacer ${fr}`)}
+                    >
+                      {t("Clear", "Effacer")}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : question.type === "text" ? (
+          <label className="scenario-text">
+            <span>{t("Your answer", "Ta réponse")}</span>
+            <textarea
+              maxLength={1000}
+              rows={5}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder={t("Write a few words…", "Écris quelques mots…")}
+            />
+            <small>{value.length}/1000</small>
+          </label>
+        ) : (
+          <div
+            className="scenario-options"
+            role="group"
+            aria-label={content.prompt}
+          >
+            {content.options.map((label, i) => (
+              <button
+                type="button"
+                key={i}
+                className={`scenario-option ${(question.type === "multiple" ? value.includes(i) : value === i) ? "chosen" : ""}`}
+                aria-pressed={
+                  question.type === "multiple" ? value.includes(i) : value === i
+                }
+                disabled={busy}
+                onClick={() =>
+                  question.type === "multiple" ? toggle(i) : setValue(i)
+                }
+              >
+                <span aria-hidden="true" className="scenario-indicator">
+                  {(
+                    question.type === "multiple"
+                      ? value.includes(i)
+                      : value === i
+                  )
+                    ? "✓"
+                    : ""}
+                </span>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+        <button
+          className="primary full scenario-next"
+          disabled={busy || (question.type === "single" && value === null)}
+          onClick={() => onAnswer(value)}
+        >
+          {busy ? t("Saving…", "Enregistrement…") : t("Continue", "Continuer")}
+        </button>
         <button
           className="text-button skip"
           disabled={busy}
-          onClick={() => choose(null)}
+          onClick={() => onAnswer(null)}
         >
           {t("Skip this question", "Passer cette question")}
         </button>

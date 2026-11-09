@@ -41,6 +41,8 @@ const engine = {
 
 Both the questionnaire and semantic components are mock hash values; their average is an explicitly arbitrary demonstration. Answers and texts are not used in these numbers. No embedding is generated, stored or sent externally.
 
+The `scenario-v3` ratings provide 13 stable named numeric dimensions, with null for an unanswered interest. They are private raw inputs, not an embedding, and do not affect the demo score. Versioned historical responses remain in the account export.
+
 For the next phase, implement questionnaire feature extraction, text embedding/comparison and score calibration behind the adapter. Store the questionnaire version, model version and engine version with any cached result. Handle missing/skipped answers and empty texts deliberately. Choose weights from evidence and validation; do not preserve demo averaging by accident. Revisit UI labels and uncertainty before setting `simulated: false` (the current API/UI intentionally hard-code prototype disclosure).
 
 Discovery eligibility is separate from score. Both participants' optional gender filters must allow the other. No intent/sexual orientation is inferred or displayed. Unspecified identity cannot satisfy a gender-specific filter.

@@ -30,8 +30,8 @@ Production uses the compiled frontend and requires HTTPS configuration; see [Dep
 ## The experience
 
 1. Choose a first name or nickname and an avatar. Continue to optional details: Bachelor’s/Licence, Master or PhD/Doctorat, public bio, age (18+), private identity and discovery preferences.
-2. Slide ten two-choice cards left/right, use arrow keys or tap a choice. You can skip any card. Go back to change a choice. Each answer saves on the server before advancing.
-3. Add two optional private texts and optional Instagram/Discord usernames. **Publish & meet people** makes your profile visible and opens discovery; there is no separate visibility checkbox.
+2. Follow five illustrated story cards: single choices, private 1–10 interest ratings and multiple choices. The final card offers four reference images and two placeholders. You can skip any card or go back. Each answer saves before advancing.
+3. Optionally add Instagram/Discord usernames. **Publish & meet people** makes your profile visible and opens discovery; there is no separate visibility checkbox.
 4. Explore real participants. Results update every 12 seconds while the page is visible. Filter the simulated score between 30 and 100. Fictional examples live in a separate tab and cannot receive contact requests.
 5. Ask to share contacts. After the other person accepts, Instagram/Discord handles become visible. Neither handle is required. Cancel, disconnect or block at any time.
 6. In settings: edit, hide, export, unblock or permanently delete. Hiding excludes the profile and its contacts from future results.
@@ -75,6 +75,8 @@ N’ajoutez jamais `.env`, `data/`, bases SQLite, profils de test, `node_modules
 
 ## Dernière évolution de l’interface
 
-Palette lavande/rose/menthe et texture légère ; quatre avatars vectoriels locaux avec relief ; accueil compact séparé des champs facultatifs ; cartes glissables ; anglais simplifié ; échange réciproque des réseaux explicite. Les pronoms ont été retirés.
+Palette lavande/rose/menthe et texture légère ; quatre avatars vectoriels locaux avec relief ; accueil compact séparé des champs facultatifs ; cartes de scénario ; anglais simplifié ; échange réciproque des réseaux explicite. Les pronoms ont été retirés.
+
+Le questionnaire `scenario-v3` propose 13 dimensions d’intérêt fixes, notées de 1 à 10 ou non renseignées. Les images de références disponibles peuvent être sélectionnées ; les emplacements Pop et Anime restent en attente. Les réponses `explore-v1` et `scenario-v2` ne sont pas converties : lorsqu’une personne commence le nouveau parcours, elles restent dans l’historique privé de son export. Ces notes forment des données structurées pour une utilisation future ; aucun modèle d’embedding ni calcul de compatibilité basé sur ces données n’est encore en place.
 
 Au démarrage, la migration SQLite v2 retire l’ancien champ de pronoms et convertit les formations reconnues en `bachelor`, `master` ou `doctorate`. Une ancienne formation non reconnue devient non précisée. Les profils, réponses, contacts, sessions et relations sont conservés. Sauvegardez la base avant une mise à jour sur un serveur partagé.

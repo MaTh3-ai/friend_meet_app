@@ -4,16 +4,16 @@ Dépôt privé : https://github.com/MaTh3-ai/friend_meet_app. Le nom du produit 
 
 ## Repères
 
-| Zone                         | Fichiers                                              |
-| ---------------------------- | ----------------------------------------------------- |
-| Parcours et textes bilingues | `src/main.jsx`                                        |
-| Gestes et clavier des cartes | `src/SwipeCard.jsx`                                   |
-| Style et avatars             | `src/styles.css`, `src/Avatar.jsx`, `public/avatars/` |
-| Questions et catalogue       | `shared/questions.js`                                 |
-| API et confidentialité       | `server/app.js`, `server/validation.js`               |
-| Base et migrations           | `server/db.js`                                        |
-| Authentification et CAS      | `server/auth.js`, `docs/CAS.md`                       |
-| Tests                        | `tests/app.test.js`                                   |
+| Zone                                | Fichiers                                              |
+| ----------------------------------- | ----------------------------------------------------- |
+| Parcours et textes bilingues        | `src/main.jsx`                                        |
+| Présentation et réponses des cartes | `src/SwipeCard.jsx`                                   |
+| Style et avatars                    | `src/styles.css`, `src/Avatar.jsx`, `public/avatars/` |
+| Questions et catalogue              | `shared/questions.js`                                 |
+| API et confidentialité              | `server/app.js`, `server/validation.js`               |
+| Base et migrations                  | `server/db.js`                                        |
+| Authentification et CAS             | `server/auth.js`, `docs/CAS.md`                       |
+| Tests                               | `tests/app.test.js`                                   |
 
 ## Contrôles GitHub
 
@@ -28,7 +28,7 @@ Le propriétaire invite les comptes GitHub identifiés dans Settings → Collabo
 ## Prochaine phase
 
 - Tester le parcours sur de vrais téléphones avec quelques étudiants.
-- Valider les formulations EN/FR et l’accessibilité du swipe.
+- Valider les formulations EN/FR et l’accessibilité des cartes ; choisir les captures de références.
 - Définir puis valider un vrai modèle de score ; garder la mention de simulation jusque-là.
 - Confirmer l’intégration CAS et les attributs étudiants avec l’UPPA.
 - Choisir l’opérateur, le domaine et le serveur avant tout déploiement partagé.
