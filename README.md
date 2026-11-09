@@ -27,6 +27,21 @@ pnpm build
 
 Production uses the compiled frontend and requires HTTPS configuration; see [Deployment](docs/DEPLOYMENT.md). This project does not depend on Sites hosting, AWS-specific services or a paid AI API.
 
+## Déployer sur un serveur
+
+Sur un serveur Linux équipé de Git, Docker Compose et OpenSSL, avec un domaine pointant vers le serveur et les ports 80/443 ouverts :
+
+```sh
+git clone https://github.com/MaTh3-ai/friend_meet_app.git
+cd friend_meet_app
+sh scripts/setup.sh rencontre.example.fr contact@example.fr
+docker compose up -d --build --wait
+```
+
+Remplacez le domaine et l’adresse par les vôtres. La première commande de configuration crée `.env` et un code d’accès privé unique : consultez ce fichier sur le serveur pour partager le code aux participants. L’application et Caddy démarrent ensemble ; tous les participants utilisent la même base SQLite persistante. Les mises à jour se font ensuite avec `git pull --ff-only` puis `docker compose up -d --build --wait`.
+
+La mise en service, les sauvegardes et les limites du mode démo sont détaillées dans [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Le déploiement doit être validé sur le serveur réel ; le score expérimental et la connexion CAS ne sont pas validés pour une ouverture générale.
+
 ## The experience
 
 1. Choose a first name or nickname and an avatar. Continue to optional details: Bachelor’s/Licence, Master or PhD/Doctorat, public bio, age (18+), private identity and discovery preferences.

@@ -22,3 +22,53 @@ jobs:
       - run: pnpm format:check
       - run: pnpm test
       - run: pnpm build
+  docker-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      COMPOSE_PROJECT_NAME: meetingground-ci-${{ github.run_id }}-${{ github.run_attempt }}
+      APP_ORIGIN: https://localhost
+      SITE_DOMAIN: localhost
+      CI_DEMO_CODE: ci-only-access-code-123
+      SMOKE_STATE_FILE: ${{ runner.temp }}/meeting-ground-session.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.19.0"
+      - name: Prepare isolated CI configuration
+        run: |
+          umask 077
+          printf 'APP_ORIGIN=%s\nSITE_DOMAIN=%s\nAUTH_MODE=demo\nDEMO_ACCESS_CODE=%s\nPRIVACY_CONTACT=ci@example.invalid\n' "$APP_ORIGIN" "$SITE_DOMAIN" "$CI_DEMO_CODE" > .env
+      - name: Build and start the complete stack
+        run: docker compose up -d --build --wait --wait-timeout 180
+      - name: Trust the test-only local certificate and verify HTTPS
+        run: |
+          for attempt in $(seq 1 30); do
+            if docker compose exec -T proxy cat /data/caddy/pki/authorities/local/root.crt > "$RUNNER_TEMP/caddy-root.crt" 2>/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl --fail --silent --show-error --retry 20 --retry-delay 1 --retry-all-errors --cacert "$RUNNER_TEMP/caddy-root.crt" "$APP_ORIGIN/healthz"
+      - name: Create two participants through HTTPS
+        env:
+          NODE_EXTRA_CA_CERTS: ${{ runner.temp }}/caddy-root.crt
+        run: node tests/docker-smoke.mjs create
+      - name: Recreate the app container and verify persistence
+        env:
+          NODE_EXTRA_CA_CERTS: ${{ runner.temp }}/caddy-root.crt
+        run: |
+          docker compose up -d --force-recreate --no-deps --wait --wait-timeout 180 app
+          curl --fail --silent --show-error --retry 20 --retry-delay 1 --retry-all-errors --cacert "$RUNNER_TEMP/caddy-root.crt" "$APP_ORIGIN/healthz"
+          node tests/docker-smoke.mjs check
+      - name: Create and inspect an online backup
+        run: |
+          sh scripts/backup.sh "$RUNNER_TEMP/meeting-ground-smoke.sqlite"
+          node tests/docker-smoke.mjs backup "$RUNNER_TEMP/meeting-ground-smoke.sqlite"
+      - name: Show diagnostics on failure
+        if: failure()
+        run: docker compose logs --tail=80
+      - name: Remove isolated CI containers and volumes
+        if: always()
+        run: docker compose down -v --remove-orphans
