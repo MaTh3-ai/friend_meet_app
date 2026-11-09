@@ -29,7 +29,7 @@ Le propriétaire invite les comptes GitHub identifiés dans Settings → Collabo
 
 - Tester le parcours sur de vrais téléphones avec quelques étudiants.
 - Valider les formulations EN/FR et l’accessibilité des cartes ; choisir les captures de références.
-- Définir puis valider un vrai modèle de score ; garder la mention de simulation jusque-là.
+- Tester et valider l’indice expérimental, notamment les risques d’inférence ; les scores fictifs restent simulés.
 - Confirmer l’intégration CAS et les attributs étudiants avec l’UPPA.
 - Choisir l’opérateur, le domaine et le serveur avant tout déploiement partagé.
 

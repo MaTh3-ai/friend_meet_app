@@ -1,4 +1,4 @@
-// Provisional questions; scores are simulated and do not use answers.
+// Provisional questions; similarity is experimental, not a validated prediction.
 export const QUESTIONNAIRE_VERSION = "scenario-v4";
 // Stable IDs define the dimensions of the private interest vector.
 export const interestDimensions = [

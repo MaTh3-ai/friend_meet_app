@@ -9,8 +9,8 @@
 - Optional private identity is used only for discovery filtering. Discovery includes Anyone, Women, Men and Non-binary people. Both sides' filters apply.
 - Five provisional story cards: two single-choice questions, private 1–10 interest ratings, an activity multiple choice, and four selectable reference images with two placeholders. Back and skip remain available. This is a UX hypothesis, not a validated scale.
 - Previous optional private texts remain stored for existing users, but are no longer requested during onboarding. No external AI processing.
-- Do not call the percentage a scientific compatibility estimate. The prototype discloses simulation on results and explains that the numbers do not depend on answers.
-- Results use real participants by default and refresh every 12 seconds. Fictional examples are clearly separate. Minimum-score filtering starts at 30 so it does not accidentally hide everyone.
+- Do not call the percentage a scientific compatibility estimate. Real scores are experimental and answer-dependent; fictional scores are disclosed as simulated.
+- Results use real participants by default and refresh every 12 seconds. Fictional examples are separate. The minimum-score filter starts at 0, and people with no score remain visible.
 - Optional Instagram/Discord contacts are revealed only after a mutual contact-sharing request and acceptance. No WhatsApp number, messaging system or notifications service. A high score alone is not mutual consent.
 - One-tap hiding and explicit irreversible account deletion are separate. Export and blocking are implemented. Retention defaults to 30 days without updates, configurable on the server.
 

@@ -18,7 +18,13 @@ import {
   textsSchema,
 } from "./validation.js";
 import { QUESTIONNAIRE_VERSION } from "../shared/questions.js";
-import { demoEngine, eligible, fixtures, publicProfile } from "./matching.js";
+import {
+  demoEngine,
+  similarityEngine,
+  eligible,
+  fixtures,
+  publicProfile,
+} from "./matching.js";
 
 const decode = (row) => ({
   ...row,
@@ -118,7 +124,7 @@ export function createApp(db, config) {
     res.json({
       authMode: config.mode,
       accessCodeRequired: !!config.demoCode,
-      simulated: true,
+      simulated: false,
       retentionDays: config.retentionDays,
       privacyContact: config.privacyContact,
     }),
@@ -303,17 +309,20 @@ export function createApp(db, config) {
             : connectionStatus(req.person.id, p.id);
           return {
             ...publicProfile(p),
-            score: await demoEngine.score(req.person, p),
+            ...(example
+              ? { score: await demoEngine.score(req.person, p), limited: false }
+              : await similarityEngine.score(req.person, p)),
             status,
             ...(status === "connected" ? { contacts: p.contacts } : {}),
           };
         }),
     );
     res.json({
-      simulated: true,
-      engineVersion: demoEngine.version,
+      simulated: example,
+      experimental: !example,
+      engineVersion: example ? demoEngine.version : similarityEngine.version,
       matches: matches.sort(
-        (a, b) => b.score - a.score || a.id.localeCompare(b.id),
+        (a, b) => (b.score ?? -1) - (a.score ?? -1) || a.id.localeCompare(b.id),
       ),
     });
   });
