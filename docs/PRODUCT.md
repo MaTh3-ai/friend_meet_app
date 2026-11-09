@@ -7,8 +7,8 @@
 - English is always the first-run language. A clearly labelled EN/FR switch preserves progress; only the language preference is stored in localStorage. User-written text is not automatically translated.
 - First name/nickname and avatar are the only initial requirements. Study level, bio and age are optional public fields. Pronouns are not collected or displayed. The prototype's age field accepts adults (18+) and does not collect birth dates. This fits the stated M2 cohort; reconsider onboarding before admitting minors.
 - Optional private identity is used only for discovery filtering. Discovery includes Anyone, Women, Men and Non-binary people. Both sides' filters apply.
-- Ten provisional two-choice cards with horizontal swiping, left/right keyboard arrows and explicit choice buttons; back/skip remain available. This is a UX hypothesis to time-test, not a validated scale.
-- Two optional private texts: “I’m into…” and “Not my thing…”, 180 characters each. Avoid prompts for sensitive topics. No external AI processing in this version.
+- Five provisional story cards: two single-choice questions, private 1–10 interest ratings, an activity multiple choice, and four selectable reference images with two placeholders. Back and skip remain available. This is a UX hypothesis, not a validated scale.
+- Previous optional private texts remain stored for existing users, but are no longer requested during onboarding. No external AI processing.
 - Do not call the percentage a scientific compatibility estimate. The prototype discloses simulation on results and explains that the numbers do not depend on answers.
 - Results use real participants by default and refresh every 12 seconds. Fictional examples are clearly separate. Minimum-score filtering starts at 30 so it does not accidentally hide everyone.
 - Optional Instagram/Discord contacts are revealed only after a mutual contact-sharing request and acceptance. No WhatsApp number, messaging system or notifications service. A high score alone is not mutual consent.

@@ -136,7 +136,11 @@ function App() {
   function hydrate(person) {
     setMe(person);
     setProfile({ ...emptyProfile, ...person.profile });
-    setAnswers(person.answers.values || {});
+    setAnswers(
+      person.answers.version === QUESTIONNAIRE_VERSION
+        ? person.answers.values || {}
+        : {},
+    );
     setTexts({ likes: "", dislikes: "", ...person.texts });
     setContacts({ instagram: "", discord: "", ...person.contacts });
   }
@@ -283,7 +287,13 @@ function App() {
         setScreen("details");
       } else {
         const next = questions.findIndex(
-          (q) => !(q.id in (person.answers.values || {})),
+          (q) =>
+            !(
+              q.id in
+              (person.answers.version === QUESTIONNAIRE_VERSION
+                ? person.answers.values || {}
+                : {})
+            ),
         );
         setQIndex(next === -1 ? 0 : next);
         setScreen(next === -1 ? "texts" : "quiz");
@@ -763,10 +773,10 @@ function App() {
               role="progressbar"
               aria-label={t("Questions answered", "Questions répondues")}
               aria-valuemin={0}
-              aria-valuemax={10}
+              aria-valuemax={questions.length}
               aria-valuenow={qIndex}
             >
-              <div style={{ width: `${qIndex * 10}%` }} />
+              <div style={{ width: `${(qIndex / questions.length) * 100}%` }} />
             </div>
             <SwipeCard
               key={qIndex}
@@ -777,10 +787,6 @@ function App() {
               onAnswer={answer}
               heading={heading}
               t={t}
-              icon={React.createElement(icons[questions[qIndex].icon], {
-                size: 36,
-                strokeWidth: 1.6,
-              })}
             />
             <p className="quiet-note">
               <LockKeyhole size={14} />
@@ -797,7 +803,7 @@ function App() {
             <button
               className="text-button back-space"
               onClick={() => {
-                setQIndex(9);
+                setQIndex(questions.length - 1);
                 setScreen("quiz");
               }}
             >
@@ -812,56 +818,15 @@ function App() {
                 {t("ONE LAST STEP", "DERNIÈRE ÉTAPE")}
               </span>
               <h1 ref={heading} tabIndex={-1}>
-                {t("Your interests.", "Tes envies.")}
+                {t("Ready to meet?", "Prêt·e à découvrir les profils ?")}
               </h1>
               <p>
                 {t(
-                  "A few words are enough. Both are optional and private.",
-                  "Quelques mots suffisent. Les deux sont facultatifs et privés.",
+                  "Your answers are saved and stay private.",
+                  "Tes réponses sont enregistrées et restent privées.",
                 )}
               </p>
               <form onSubmit={finish}>
-                {[
-                  [
-                    "likes",
-                    t("I like…", "J’aime…"),
-                    t(
-                      "Walks, films, cooking with friends…",
-                      "Les balades, le cinéma indépendant, cuisiner entre amis…",
-                    ),
-                  ],
-                  [
-                    "dislikes",
-                    t("I don’t like…", "J’aime moins…"),
-                    t(
-                      "Crowds, early mornings…",
-                      "La foule, les réveils matinaux, les discussions sans fin…",
-                    ),
-                  ],
-                ].map(([key, label, placeholder]) => (
-                  <label key={key}>
-                    {label}
-                    <textarea
-                      maxLength={180}
-                      rows={3}
-                      value={texts[key]}
-                      onBlur={() =>
-                        api("/me/texts", "PUT", texts).catch(showError)
-                      }
-                      onChange={(e) =>
-                        setTexts({ ...texts, [key]: e.target.value })
-                      }
-                      placeholder={placeholder}
-                    />
-                    <small className="counter">{texts[key].length}/180</small>
-                  </label>
-                ))}
-                <p className="small-note">
-                  {t(
-                    "Keep it light: interests and everyday preferences. Avoid sensitive or intimate details.",
-                    "Reste léger : centres d’intérêt et préférences du quotidien. Évite les détails sensibles ou intimes.",
-                  )}
-                </p>
                 <details className="optional contact-onboarding">
                   <summary>
                     {t("Instagram & Discord", "Instagram et Discord")}{" "}
