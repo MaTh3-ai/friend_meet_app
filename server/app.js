@@ -27,6 +27,18 @@ const decode = (row) => ({
   texts: JSON.parse(row.texts),
   contacts: JSON.parse(row.contacts),
 });
+// Keep older questionnaire responses available in the user's own export.
+function updatedAnswers(previous, values) {
+  const history = [...(previous.history || [])];
+  if (previous.version && previous.version !== QUESTIONNAIRE_VERSION) {
+    history.push({ version: previous.version, values: previous.values || {} });
+  }
+  return {
+    version: QUESTIONNAIRE_VERSION,
+    values,
+    ...(history.length ? { history } : {}),
+  };
+}
 export function createApp(db, config) {
   const app = express();
   app.disable("x-powered-by");
@@ -153,7 +165,7 @@ export function createApp(db, config) {
     db.prepare(
       "UPDATE users SET answers=?,texts=?,updated_at=? WHERE id=?",
     ).run(
-      JSON.stringify({ version: QUESTIONNAIRE_VERSION, values: body.answers }),
+      JSON.stringify(updatedAnswers(req.person.answers, body.answers)),
       JSON.stringify(body.texts),
       Date.now(),
       req.person.id,
@@ -173,9 +185,9 @@ export function createApp(db, config) {
     const body = completionSchema.parse(req.body);
     profileSchema.parse(req.person.profile);
     db.prepare(
-      "UPDATE users SET answers=?,texts=?,completed=1,visible=1,updated_at=? WHERE id=?",
+      "UPDATE users SET answers=?,texts=?,visible=CASE WHEN completed=1 THEN visible ELSE 1 END,completed=1,updated_at=? WHERE id=?",
     ).run(
-      JSON.stringify({ version: body.version, values: body.answers }),
+      JSON.stringify(updatedAnswers(req.person.answers, body.answers)),
       JSON.stringify(body.texts),
       Date.now(),
       req.person.id,

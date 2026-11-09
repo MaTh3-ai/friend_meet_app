@@ -3,6 +3,8 @@ import {
   questions,
   QUESTIONNAIRE_VERSION,
   avatars,
+  interestDimensions,
+  referenceImages,
 } from "../shared/questions.js";
 const clean = (max) =>
   z
@@ -34,7 +36,49 @@ const answersSchema = z
     Object.fromEntries(
       questions.map((q) => [
         q.id,
-        z.union([z.literal(0), z.literal(1), z.null()]),
+        q.type === "ratings"
+          ? z.union([
+              z
+                .object(
+                  Object.fromEntries(
+                    interestDimensions.map(({ id }) => [
+                      id,
+                      z.number().int().min(1).max(10).nullable(),
+                    ]),
+                  ),
+                )
+                .strict(),
+              z.null(),
+            ])
+          : q.type === "text"
+            ? z.union([clean(1000), z.null()])
+            : q.type === "multiple"
+              ? z.union([
+                  z
+                    .array(
+                      z
+                        .number()
+                        .int()
+                        .min(0)
+                        .max(q.fr.options.length - 1),
+                    )
+                    .max(q.fr.options.length)
+                    .refine((values) => new Set(values).size === values.length)
+                    .refine(
+                      (values) =>
+                        q.id !== "references" ||
+                        values.every((i) => referenceImages[i] !== null),
+                    ),
+                  z.null(),
+                ])
+              : z.union([
+                  z
+                    .number()
+                    .int()
+                    .min(0)
+                    .max(q.fr.options.length - 1),
+                  z.null(),
+                ]),
       ]),
     ),
   )

@@ -1,113 +1,197 @@
-// Versioned, provisional interaction prompts. These are NOT validated psychometric items.
-export const QUESTIONNAIRE_VERSION = "explore-v1";
+// Provisional questions; scores are simulated and do not use answers.
+export const QUESTIONNAIRE_VERSION = "scenario-v3";
+// Stable IDs define the dimensions of the private interest vector.
+export const interestDimensions = [
+  { id: "pop", en: "Pop music", fr: "Musique pop" },
+  { id: "rap", en: "Rap and hip-hop", fr: "Rap et hip-hop" },
+  { id: "rock", en: "Rock", fr: "Rock" },
+  { id: "electronic", en: "Electronic music", fr: "Musique électronique" },
+  { id: "jazz", en: "Jazz", fr: "Jazz" },
+  { id: "classical", en: "Classical music", fr: "Musique classique" },
+  { id: "fashion", en: "Fashion and style", fr: "Mode et style" },
+  { id: "sport", en: "Sport", fr: "Sport" },
+  { id: "gaming", en: "Video games", fr: "Jeux vidéo" },
+  { id: "cinema", en: "Cinema", fr: "Cinéma" },
+  { id: "series", en: "TV series", fr: "Séries" },
+  { id: "anime", en: "Anime and manga", fr: "Anime et manga" },
+  {
+    id: "nature",
+    en: "Nature and outdoor activities",
+    fr: "Nature et activités en plein air",
+  },
+];
+// Order matches the response indexes in both languages; null means no image yet.
+export const referenceImages = [
+  null,
+  {
+    src: "/references/urban.jpg",
+    alt: {
+      en: "A man wearing a cap and sunglasses",
+      fr: "Un homme portant une casquette et des lunettes de soleil",
+    },
+  },
+  {
+    src: "/references/sport.jpg",
+    alt: {
+      en: "A football player wearing a cap",
+      fr: "Un footballeur portant une casquette",
+    },
+  },
+  {
+    src: "/references/cinema.webp",
+    alt: {
+      en: "Red lift doors in a hotel",
+      fr: "Des portes d’ascenseur rouges dans un hôtel",
+    },
+  },
+  {
+    src: "/references/gaming.jpg",
+    alt: {
+      en: "A man wearing a headset in a video game shop",
+      fr: "Un homme portant un casque dans un magasin de jeux vidéo",
+    },
+  },
+  null,
+];
 export const questions = [
   {
-    id: "evening",
-    icon: "moon",
-    en: ["A free evening. You’re more likely to…", "Go out", "Stay home"],
-    fr: ["Une soirée libre. Tu préfères…", "Sortir", "Rester au calme"],
-  },
-  {
-    id: "weekend",
-    icon: "sun",
-    en: [
-      "Where would you go on Saturday?",
-      "Somewhere outdoors",
-      "Somewhere in town",
-    ],
-    fr: ["C’est samedi. On va où ?", "En pleine nature", "En ville"],
-  },
-  {
-    id: "plans",
-    icon: "compass",
-    en: ["The best plans are…", "Made in advance", "Decided on the day"],
-    fr: ["Les meilleurs plans sont…", "Prévus à l’avance", "Un peu spontanés"],
-  },
-  {
-    id: "group",
+    id: "party",
+    type: "single",
     icon: "users",
-    en: ["Meeting new people feels easier…", "In a small group", "One to one"],
-    fr: ["Faire connaissance, c’est plus facile…", "En petit groupe", "À deux"],
+    fr: {
+      title: "Une soirée chez un ami",
+      context:
+        "Un ami t’invite à une soirée. Tu connais quelques personnes, mais tu vas aussi en découvrir de nouvelles.",
+      prompt: "Comment te sens-tu à cette idée ?",
+      options: [
+        "Ça m’enthousiasme : j’aime rencontrer de nouvelles personnes.",
+        "Je suis moins à l’aise au début : il me faut un peu de temps pour découvrir les gens.",
+        "Ça dépend de mon humeur et du contexte.",
+      ],
+    },
+    en: {
+      title: "A party at a friend’s",
+      context:
+        "A friend invites you to a party. You know a few people, and you’ll meet some new ones too.",
+      prompt: "How do you feel about going?",
+      options: [
+        "Excited: I like meeting new people.",
+        "A little unsure at first: I need time to get to know people.",
+        "It depends on my mood and the situation.",
+      ],
+    },
   },
   {
-    id: "energy",
-    icon: "coffee",
-    en: [
-      "What would you do with a friend?",
-      "Do something active",
-      "A long conversation",
-    ],
-    fr: [
-      "Pour se retrouver, tu préfères…",
-      "Une activité animée",
-      "Une longue discussion",
-    ],
-  },
-  {
-    id: "novelty",
-    icon: "sparkles",
-    en: [
-      "Picking something to do together…",
-      "Try something new",
-      "Do something we know",
-    ],
-    fr: [
-      "Une activité ensemble…",
-      "Découvrir quelque chose",
-      "Retrouver un favori",
-    ],
-  },
-  {
-    id: "study",
-    icon: "book",
-    en: ["A study break should be…", "Time with friends", "Quiet time alone"],
-    fr: [
-      "Une pause entre deux cours…",
-      "Un moment avec les autres",
-      "Du calme pour récupérer",
-    ],
-  },
-  {
-    id: "connection",
+    id: "interests",
+    type: "ratings",
     icon: "message",
-    en: [
-      "Keeping in touch, your style is…",
-      "Little messages often",
-      "Long talks now and then",
-    ],
-    fr: [
-      "Pour garder le contact…",
-      "De petits messages réguliers",
-      "De vraies retrouvailles",
-    ],
+    fr: {
+      title: "La conversation commence",
+      context:
+        "Pendant la soirée, tu fais connaissance avec quelqu’un. La personne te demande :",
+      prompt: "Quels sont tes centres d’intérêt ?",
+      hint: "Pour chaque sujet, indique à quel point il t’intéresse, de 1 à 10. Tu peux laisser des sujets sans réponse.",
+    },
+    en: {
+      title: "The conversation starts",
+      context: "At the party, you meet someone. They ask:",
+      prompt: "What are you interested in?",
+      hint: "For each topic, rate your interest from 1 to 10. You can leave any topic unanswered.",
+    },
   },
   {
-    id: "pace",
-    icon: "leaf",
-    en: [
-      "Getting to know someone, you prefer to…",
-      "Take your time",
-      "Get close quickly",
-    ],
-    fr: [
-      "Pour découvrir quelqu’un…",
-      "Prendre ton temps",
-      "Te lancer tout de suite",
-    ],
+    id: "activities",
+    type: "multiple",
+    icon: "compass",
+    fr: {
+      title: "Vous avez envie de vous revoir",
+      context:
+        "Tu accroches avec cette personne et elle te propose de vous revoir.",
+      prompt: "Quelles activités aurais-tu envie de lui proposer ?",
+      hint: "Plusieurs réponses possibles.",
+      options: [
+        "Faire du sport.",
+        "Jouer à des jeux de société ou à des jeux vidéo.",
+        "Aller au cinéma, à un spectacle d’humour ou à un concert.",
+        "Partir en randonnée ou faire de l’urbex.",
+        "Aller dans un bar, à un festival ou en boîte de nuit.",
+        "Simplement se retrouver pour discuter, peu importe l’endroit.",
+      ],
+    },
+    en: {
+      title: "You’d like to meet again",
+      context: "You get along and they suggest meeting again.",
+      prompt: "What would you like to do together?",
+      hint: "Choose any that apply.",
+      options: [
+        "Play sports.",
+        "Play board games or video games.",
+        "Go to the cinema, a comedy show or a concert.",
+        "Go hiking or urban exploring.",
+        "Go to a bar, festival or club.",
+        "Just meet and talk, wherever we are.",
+      ],
+    },
   },
   {
-    id: "friendship",
-    icon: "heart",
-    en: [
-      "A connection starts with…",
-      "Things we do together",
-      "Things we talk about",
-    ],
-    fr: [
-      "Un lien commence par…",
-      "Ce qu’on fait ensemble",
-      "Ce qu’on se raconte",
-    ],
+    id: "humour",
+    type: "single",
+    icon: "sparkles",
+    fr: {
+      title: "L’autodérision",
+      context:
+        "La conversation continue. Tu racontes une situation où tu as eu l’air un peu ridicule, et la personne se met à rire.",
+      prompt: "En général, tu as plutôt tendance à…",
+      options: [
+        "En rajouter pour rendre l’histoire encore plus drôle.",
+        "Rire avec elle, puis continuer ton histoire.",
+        "Passer rapidement à autre chose : tu préfères garder ce genre d’histoires pour toi.",
+      ],
+    },
+    en: {
+      title: "Laughing at yourself",
+      context:
+        "You tell a story about a time you looked a little silly, and the other person laughs.",
+      prompt: "What do you usually do?",
+      options: [
+        "Add more details to make the story even funnier.",
+        "Laugh with them, then carry on with the story.",
+        "Move on quickly: I prefer to keep these stories to myself.",
+      ],
+    },
+  },
+  {
+    id: "references",
+    type: "multiple",
+    icon: "book",
+    fr: {
+      title: "Tu as la réf ?",
+      prompt:
+        "Parmi ces captures d’écran, lesquelles reconnais-tu au point de pouvoir compléter la phrase ou raconter ce qui arrive juste après ?",
+      hint: "Choisis les images que tu reconnais. Plusieurs réponses possibles ; deux images arrivent bientôt.",
+      options: [
+        "Pop",
+        "Culture urbaine / Rap",
+        "Sport",
+        "Cinéma",
+        "Gaming",
+        "Anime",
+      ],
+    },
+    en: {
+      title: "Do you know the reference?",
+      prompt:
+        "Which of these screenshots do you know well enough to finish the line or say what happens next?",
+      hint: "Choose the images you recognise. You can pick more than one; two images are coming soon.",
+      options: [
+        "Pop",
+        "Urban culture / Rap",
+        "Sport",
+        "Cinema",
+        "Gaming",
+        "Anime",
+      ],
+    },
   },
 ];
 export const avatars = ["🍊", "🪴", "🪩", "🏔️", "🦭", "🍄", "🏝️", "🐙"];

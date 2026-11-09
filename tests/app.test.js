@@ -2,14 +2,23 @@ import { test } from "node:test";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { profileSchema } from "../server/validation.js";
+import { profileSchema, completionSchema } from "../server/validation.js";
 import assert from "node:assert/strict";
 import { createApp } from "../server/app.js";
 import { openDb, prune } from "../server/db.js";
 import { readConfig } from "../server/config.js";
 import { parseCas } from "../server/auth.js";
 import { demoEngine, eligible } from "../server/matching.js";
-import { questions, QUESTIONNAIRE_VERSION } from "../shared/questions.js";
+import {
+  questions,
+  QUESTIONNAIRE_VERSION,
+  interestDimensions,
+} from "../shared/questions.js";
+
+const ratings = () =>
+  Object.fromEntries(
+    interestDimensions.map(({ id }, i) => [id, i === 0 ? 7 : null]),
+  );
 
 const profile = (name) => ({
   name,
@@ -94,7 +103,20 @@ test("Private data, mutual contacts, visibility, blocks, export and deletion acr
           "POST",
           {
             version: QUESTIONNAIRE_VERSION,
-            answers: Object.fromEntries(questions.map((q) => [q.id, 0])),
+            answers: Object.fromEntries(
+              questions.map((q) => [
+                q.id,
+                q.type === "ratings"
+                  ? ratings()
+                  : q.type === "text"
+                    ? "SECRET-INTERESTS"
+                    : q.type === "multiple"
+                      ? q.id === "references"
+                        ? [1, 2]
+                        : [0, 2]
+                      : 0,
+              ]),
+            ),
             texts: { likes: `SECRET-${name}`, dislikes: "PRIVATE-TEXT" },
             consent: true,
           },
@@ -106,6 +128,61 @@ test("Private data, mutual contacts, visibility, blocks, export and deletion acr
   }
   const a = (await request("/me", "GET", undefined, alice)).data;
   const b = (await request("/me", "GET", undefined, bob)).data;
+  // Starting the new questionnaire keeps legacy answers in the owner's export.
+  db.prepare("UPDATE users SET answers=? WHERE id=?").run(
+    JSON.stringify({
+      version: "scenario-v2",
+      values: { interests: "PRIVATE-OLD-TEXT" },
+      history: [{ version: "explore-v1", values: { evening: 1 } }],
+    }),
+    a.id,
+  );
+  assert.equal(
+    (
+      await request(
+        "/me/draft",
+        "PUT",
+        { answers: { party: 2 }, texts: { likes: "", dislikes: "" } },
+        alice,
+      )
+    ).status,
+    200,
+  );
+  const exported = (await request("/me/export", "GET", undefined, alice)).data;
+  assert.deepEqual(exported.answers.history, [
+    { version: "explore-v1", values: { evening: 1 } },
+    { version: "scenario-v2", values: { interests: "PRIVATE-OLD-TEXT" } },
+  ]);
+  assert.equal(
+    (
+      await request(
+        "/me/complete",
+        "POST",
+        {
+          version: QUESTIONNAIRE_VERSION,
+          answers: {
+            party: 2,
+            interests: ratings(),
+            activities: [0, 3],
+            humour: 1,
+            references: null,
+          },
+          texts: { likes: "", dislikes: "" },
+          consent: true,
+        },
+        alice,
+      )
+    ).status,
+    200,
+  );
+  assert.deepEqual(
+    (await request("/me", "GET", undefined, alice)).data.answers.history,
+    exported.answers.history,
+  );
+  const ownAnswers = (await request("/me", "GET", undefined, bob)).data.answers
+    .values;
+  assert.deepEqual(ownAnswers.interests, ratings());
+  assert.deepEqual(ownAnswers.references, [1, 2]);
   await request(
     "/me/contacts",
     "PUT",
@@ -118,6 +195,9 @@ test("Private data, mutual contacts, visibility, blocks, export and deletion acr
   for (const secret of [
     "SECRET",
     "PRIVATE-TEXT",
+    "PRIVATE-OLD-TEXT",
+    '"interests"',
+    '"references"',
     "answers",
     "texts",
     "principal",
@@ -227,6 +307,42 @@ test("Private data, mutual contacts, visibility, blocks, export and deletion acr
   db.prepare("UPDATE users SET updated_at=0").run();
   assert.equal(prune(db, 30), 1);
   assert.equal(db.prepare("SELECT count(*) n FROM sessions").get().n, 0);
+});
+
+test("Scenario answers accept the correct types and reject invalid choices", () => {
+  const body = {
+    version: QUESTIONNAIRE_VERSION,
+    answers: {
+      party: 2,
+      interests: ratings(),
+      activities: [0, 5],
+      humour: 1,
+      references: null,
+    },
+    texts: { likes: "", dislikes: "" },
+    consent: true,
+  };
+  assert.equal(completionSchema.safeParse(body).success, true);
+  for (const [key, value] of [
+    ["party", 3],
+    ["activities", [0, 0]],
+    ["activities", [6]],
+    ["interests", { ...ratings(), pop: 0 }],
+    ["interests", { ...ratings(), pop: 11 }],
+    ["interests", { ...ratings(), pop: 3.5 }],
+    ["interests", { ...ratings(), unexpected: 4 }],
+    ["references", [0]],
+    ["references", [5]],
+    ["humour", [0]],
+  ]) {
+    assert.equal(
+      completionSchema.safeParse({
+        ...body,
+        answers: { ...body.answers, [key]: value },
+      }).success,
+      false,
+    );
+  }
 });
 test("CAS fails closed for failure, missing affiliation, wrong affiliation, malformed XML and DTD", () => {
   const c = {
