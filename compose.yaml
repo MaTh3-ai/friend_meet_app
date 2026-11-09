@@ -8,6 +8,7 @@ services:
       PORT: 3000
       DB_PATH: /app/data/common-ground.sqlite
       TRUST_PROXY: "1"
+      APP_ORIGIN: ${APP_ORIGIN:?Set APP_ORIGIN in .env}
     volumes:
       - app_data:/app/data
     expose:

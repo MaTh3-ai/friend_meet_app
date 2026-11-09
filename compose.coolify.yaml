@@ -1,0 +1,22 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_PATH: /app/data/common-ground.sqlite
+      TRUST_PROXY: "1"
+      APP_ORIGIN: ${APP_ORIGIN:?Set APP_ORIGIN to the exact HTTPS URL}
+      AUTH_MODE: demo
+      DEMO_ACCESS_CODE: ${DEMO_ACCESS_CODE:?Set a private demo access code}
+      RETENTION_DAYS: ${RETENTION_DAYS:-30}
+      PRIVACY_CONTACT: ${PRIVACY_CONTACT:-}
+    volumes:
+      - app_data:/app/data
+    expose:
+      - "3000"
+    security_opt:
+      - no-new-privileges:true
+volumes:
+  app_data:

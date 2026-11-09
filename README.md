@@ -29,6 +29,8 @@ Production uses the compiled frontend and requires HTTPS configuration; see [Dep
 
 ## Déployer sur un serveur
 
+Pour un déploiement avec Coolify, utilisez `compose.coolify.yaml` et suivez les instructions [Coolify](docs/DEPLOYMENT.md#déploiement-avec-coolify) : Coolify gère déjà le proxy HTTPS et les variables d'environnement.
+
 Sur un serveur Linux équipé de Git, Docker Compose et OpenSSL, avec un domaine pointant vers le serveur et les ports 80/443 ouverts :
 
 ```sh

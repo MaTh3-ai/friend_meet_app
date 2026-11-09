@@ -66,6 +66,14 @@ jobs:
         run: |
           sh scripts/backup.sh "$RUNNER_TEMP/meeting-ground-smoke.sqlite"
           node tests/docker-smoke.mjs backup "$RUNNER_TEMP/meeting-ground-smoke.sqlite"
+      - name: Start the Coolify configuration with the existing database
+        env:
+          DEMO_ACCESS_CODE: ci-only-access-code-123
+          NODE_EXTRA_CA_CERTS: ${{ runner.temp }}/caddy-root.crt
+        run: |
+          docker compose -f compose.coolify.yaml up -d --build --wait --wait-timeout 180
+          docker compose -f compose.coolify.yaml exec -T app node -e "fetch('http://127.0.0.1:3000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+          node tests/docker-smoke.mjs check
       - name: Show diagnostics on failure
         if: failure()
         run: docker compose logs --tail=80
