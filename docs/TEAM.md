@@ -1,6 +1,6 @@
 # Organisation de l’équipe
 
-Dépôt privé : https://github.com/MaTh3-ai/friend_meet_app. Le nom du produit reste Common Ground.
+Dépôt privé : https://github.com/MaTh3-ai/friend_meet_app. Le nom du produit est Meeting Ground.
 
 ## Repères
 

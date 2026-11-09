@@ -1,6 +1,6 @@
-# Friend Meet App · Common Ground
+# Friend Meet App · Meeting Ground
 
-Repository: **MaTh3-ai/friend_meet_app** (private). Product name: **Common Ground**.
+Repository: **MaTh3-ai/friend_meet_app** (private). Product name: **Meeting Ground**.
 
 A mobile-first university social discovery app. English by default, French one tap away. Built as a complete self-hosted MVP for students at UPPA.
 

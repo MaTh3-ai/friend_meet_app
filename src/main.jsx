@@ -504,14 +504,14 @@ function App() {
           onClick={() => {
             if (me?.completed) setScreen("results");
           }}
-          aria-label="Common Ground"
+          aria-label="Meeting Ground"
         >
           <span className="brand-mark">
             <i />
             <i />
           </span>
           <span>
-            common
+            meeting
             <br />
             ground<span className="brand-period">.</span>
           </span>
@@ -571,7 +571,7 @@ function App() {
               <i />
               <i />
             </span>
-            <h1>{t("A little common ground.", "Un peu de terrain commun.")}</h1>
+            <h1>Meeting Ground.</h1>
             {screen === "offline" ? (
               <button className="primary" onClick={boot}>
                 {t("Try again", "Réessayer")}
@@ -878,9 +878,7 @@ function App() {
           <section className="results-page">
             <div className="results-heading">
               <div>
-                <span className="eyebrow">
-                  {t("A LITTLE COMMON GROUND", "UN PEU DE TERRAIN COMMUN")}
-                </span>
+                <span className="eyebrow">MEETING GROUND</span>
                 <h1 ref={heading} tabIndex={-1}>
                   {t("Meet your kind of people.", "Rencontre tes gens.")}
                 </h1>
@@ -1370,7 +1368,7 @@ function App() {
       </main>
       <footer>
         <span>
-          common ground. <span className="footer-divider">/</span>{" "}
+          meeting ground. <span className="footer-divider">/</span>{" "}
           {t("A student project at UPPA", "Un projet étudiant à l’UPPA")}
         </span>
         <button onClick={() => setModal("privacy")}>
@@ -1722,8 +1720,8 @@ function App() {
                       "Ce compte démo n’a pas de connexion de récupération. Tu perdras ton accès, mais le profil restera jusqu’à sa suppression automatique. Supprime plutôt ton compte pour retirer tes données maintenant.",
                     )
                   : t(
-                      "This signs you out of Common Ground. Your UPPA browser session may still be active.",
-                      "Cela te déconnecte de Common Ground. Ta session UPPA dans le navigateur peut rester active.",
+                      "This signs you out of Meeting Ground. Your UPPA browser session may still be active.",
+                      "Cela te déconnecte de Meeting Ground. Ta session UPPA dans le navigateur peut rester active.",
                     )}
               </p>
               <button

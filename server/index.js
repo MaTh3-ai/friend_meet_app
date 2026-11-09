@@ -31,7 +31,7 @@ if (config.production) {
   app.use(vite.middlewares);
 }
 server.listen(config.port, "0.0.0.0", () =>
-  console.log(`Common Ground ready: ${config.origin}`),
+  console.log(`Meeting Ground ready: ${config.origin}`),
 );
 async function shutdown() {
   clearInterval(cleanup);

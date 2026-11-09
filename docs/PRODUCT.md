@@ -2,7 +2,7 @@
 
 **Positioning:** help UPPA students meet people outside their usual circle. Friendship is the default framing; optional private discovery preferences allow a more selective or potentially romantic use without a dating feed, profile swiping or public romantic intent.
 
-- Working name: Common Ground. It can be renamed without changing the data model.
+- Product name: Meeting Ground.
 - Soft lavender, pink and mint, light dotted texture and tactile answer cards. Four local SVG avatars (mountain/snowboard, seal, pixel mushroom, island/surfboard) alongside the retained emojis. No avatar uploads or external font dependency.
 - English is always the first-run language. A clearly labelled EN/FR switch preserves progress; only the language preference is stored in localStorage. User-written text is not automatically translated.
 - First name/nickname and avatar are the only initial requirements. Study level, bio and age are optional public fields. Pronouns are not collected or displayed. The prototype's age field accepts adults (18+) and does not collect birth dates. This fits the stated M2 cohort; reconsider onboarding before admitting minors.
